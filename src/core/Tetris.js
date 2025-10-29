@@ -79,6 +79,9 @@ export class Tetris {
     this.totalClearedLines = 0;
     this.score = 0;
     this.level = 1;
+
+    this.isPaused = false;
+    this.isGameOver = false;
   }
 
   updateBlockSize() {
@@ -122,28 +125,87 @@ export class Tetris {
     return false;
   }
 
-  restart() {
-    if (confirm('Game Over! Score: ' + this.score + '\n\nRestart?')) {
-      this.board = Array.from({ length: this.boardHeight }, () => Array(this.boardWidth).fill(0));
+  togglePause() {
+    if (this.isGameOver) return;
 
-      this.queue = new Queue();
-      this.fillQueue();
-      this.currentPiece = this.queue.dequeue();
-      this.nextPiece = this.queue.peek();
+    this.isPaused = !this.isPaused;
 
-      this.position = { x: 3, y: 0 };
+    const overlay = document.getElementById('game-overlay');
+    const overlayContent = overlay.querySelector('.overlay-content');
 
-      this.factor = 1.0;
-      this.dropInterval = BASE_DROP_INTERVAL * this.factor;
-
-      this.totalClearedLines = 0;
-      this.score = 0;
-      this.level = 1;
-
-      this.updateUI();
-
-      if (this.soundManager) this.soundManager.restartBackground();
+    if (this.isPaused) {
+      overlayContent.innerHTML = `
+        <h1>PAUSED</h1>
+        <p>Press P to resume</p>
+      `;
+      overlay.classList.remove('hidden');
+    } else {
+      overlay.classList.add('hidden');
     }
+  }
+
+  showGameOver() {
+    this.isGameOver = true;
+
+    const overlay = document.getElementById('game-overlay');
+    const overlayContent = overlay.querySelector('.overlay-content');
+
+    overlayContent.innerHTML = `
+      <h1>GAME OVER</h1>
+      <div class="game-over-score">
+        <div class="final-score">${this.score}</div>
+        <div class="score-label">Final Score</div>
+      </div>
+      <div class="game-over-stats">
+        <div class="stat">
+          <span class="stat-number">${this.totalClearedLines}</span>
+          <span class="stat-text">Lines Cleared</span>
+        </div>
+        <div class="stat">
+          <span class="stat-number">${this.level}</span>
+          <span class="stat-text">Level Reached</span>
+        </div>
+      </div>
+      <button id="restart-button" class="restart-button">PLAY AGAIN</button>
+    `;
+
+    overlay.classList.remove('hidden');
+
+    // Adicionar evento ao botão
+    setTimeout(() => {
+      const restartBtn = document.getElementById('restart-button');
+      if (restartBtn) {
+        restartBtn.addEventListener('click', () => this.restart());
+      }
+    }, 0);
+  }
+
+  restart() {
+    const overlay = document.getElementById('game-overlay');
+    overlay.classList.add('hidden');
+
+    this.board = Array.from({ length: this.boardHeight }, () => Array(this.boardWidth).fill(0));
+
+    this.queue = new Queue();
+    this.fillQueue();
+    this.currentPiece = this.queue.dequeue();
+    this.nextPiece = this.queue.peek();
+
+    this.position = { x: 3, y: 0 };
+
+    this.factor = 1.0;
+    this.dropInterval = BASE_DROP_INTERVAL * this.factor;
+
+    this.totalClearedLines = 0;
+    this.score = 0;
+    this.level = 1;
+
+    this.isPaused = false;
+    this.isGameOver = false;
+
+    this.updateUI();
+
+    if (this.soundManager) this.soundManager.restartBackground();
   }
 
   resetPiece() {
@@ -157,7 +219,9 @@ export class Tetris {
     this.lockTimer = 0;
     this.lockPending = false;
 
-    if (this.checkCollision(0, 0)) this.restart();
+    if (this.checkCollision(0, 0)) {
+      this.showGameOver();
+    }
   }
 
   adjustSpeed() {
@@ -222,6 +286,8 @@ export class Tetris {
   }
 
   update(deltaTime) {
+    if (this.isPaused || this.isGameOver) return;
+
     this.dropCounter += deltaTime;
 
     if (this.dropCounter > this.dropInterval) {

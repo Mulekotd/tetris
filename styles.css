@@ -189,6 +189,7 @@ body {
   justify-content: center;
   border-radius: 8px;
   z-index: 10;
+  background: rgba(0, 0, 0, 0.85);
 }
 
 .overlay-content {
@@ -206,6 +207,67 @@ body {
   font-size: 18px;
   margin-bottom: 30px;
   opacity: 0.9;
+}
+
+.game-over-score {
+  margin: 30px 0;
+}
+
+.final-score {
+  font-size: 64px;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  margin-bottom: 10px;
+}
+
+.game-over-stats {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  margin: 30px 0;
+}
+
+.game-over-stats .stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.stat-text {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
+.restart-button {
+  margin-top: 20px;
+  padding: 15px 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.restart-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.restart-button:active {
+  transform: translateY(0);
 }
 
 .canvas-wrapper {

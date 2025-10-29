@@ -15,6 +15,14 @@ export class InputHandler {
 
   handleKeyDown(e) {
     const key = e.key.toLowerCase();
+
+    if (KEYS.PAUSE.includes(key)) {
+      this.game.togglePause();
+      return;
+    }
+
+    if (this.game.isPaused) return;
+
     switch (true) {
       case KEYS.LEFT.includes(key):
         this.move(-1);
