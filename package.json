@@ -1,0 +1,23 @@
+{
+  "name": "tetris",
+  "version": "1.0.0",
+  "description": "",
+  "license": "MIT",
+  "author": "Mulekotd",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "build": "node build.js",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "dependencies": {
+    "prettier": "^3.6.2"
+  },
+  "devDependencies": {
+    "express": "^5.1.0",
+    "gh-pages": "^6.3.0",
+    "node": "^25.1.0",
+    "nodemon": "^3.1.10"
+  }
+}
