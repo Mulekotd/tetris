@@ -397,16 +397,70 @@ export class Tetris {
 
     const s = this.blockSize;
 
+    // Draw placed blocks first
     for (let y = 0; y < this.boardHeight; y++) {
       for (let x = 0; x < this.boardWidth; x++) {
         const cell = this.board[y][x];
 
         if (cell !== 0) {
           this.context.fillStyle = cell;
-          this.context.fillRect(x * s, y * s, s - 1, s - 1);
+          this.context.fillRect(x * s + 1, y * s + 1, s - 2, s - 2);
         }
       }
     }
+
+    // Draw grid lines on top
+    this.context.strokeStyle = '#333';
+    this.context.lineWidth = 1.5;
+
+    for (let y = 0; y <= this.boardHeight; y++) {
+      this.context.beginPath();
+      this.context.moveTo(0, y * s);
+      this.context.lineTo(this.boardWidth * s, y * s);
+      this.context.stroke();
+    }
+
+    for (let x = 0; x <= this.boardWidth; x++) {
+      this.context.beginPath();
+      this.context.moveTo(x * s, 0);
+      this.context.lineTo(x * s, this.boardHeight * s);
+      this.context.stroke();
+    }
+  }
+
+  getGhostPosition() {
+    let ghostY = this.position.y;
+
+    // Move down until collision
+    while (!this.checkCollision(0, ghostY - this.position.y + 1)) {
+      ghostY++;
+    }
+
+    return ghostY;
+  }
+
+  drawGhostPiece() {
+    const { shape } = this.currentPiece;
+    const s = this.blockSize;
+    const ghostY = this.getGhostPosition();
+
+    // Don't draw ghost if it's at the same position as current piece
+    if (ghostY === this.position.y) return;
+
+    this.context.strokeStyle = '#666';
+    this.context.lineWidth = 2;
+
+    shape.forEach((row, y) =>
+      row.forEach((v, x) => {
+        if (v) {
+          const posX = (this.position.x + x) * s;
+          const posY = (ghostY + y) * s;
+
+          // Draw outline rectangle
+          this.context.strokeRect(posX + 1, posY + 1, s - 3, s - 3);
+        }
+      })
+    );
   }
 
   drawPiece() {
@@ -417,13 +471,14 @@ export class Tetris {
 
     shape.forEach((row, y) =>
       row.forEach((v, x) => {
-        if (v) this.context.fillRect((this.position.x + x) * s, (this.position.y + y) * s, s - 1, s - 1);
+        if (v) this.context.fillRect((this.position.x + x) * s + 1, (this.position.y + y) * s + 1, s - 2, s - 2);
       })
     );
   }
 
   draw() {
     this.drawBoard();
+    this.drawGhostPiece();
     this.drawPiece();
   }
 

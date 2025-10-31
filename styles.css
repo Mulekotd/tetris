@@ -45,6 +45,8 @@ body::-webkit-scrollbar {
   height: 100%;
   width: auto;
   display: block;
+  min-height: 720px;
+  min-width: 310px;
 }
 
 .side-panel {
