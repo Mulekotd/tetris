@@ -4,18 +4,14 @@ export class InputHandler {
   constructor(game, gameManager) {
     this.game = game;
     this.gameManager = gameManager;
-    this.isListening = false;
   }
 
   listen() {
-    if (this.isListening) return;
-
     window.addEventListener('keydown', e => this.handleKeyDown(e));
-    this.isListening = true;
   }
 
   handleKeyDown(e) {
-    // Block all inputs if game hasn't started yet
+    // Block all inputs if game hasn't started
     if (!this.gameManager.isStarted) return;
 
     const key = e.key.toLowerCase();
@@ -99,6 +95,7 @@ export class InputHandler {
 
       this.game.mergePiece();
       this.game.resetPiece();
+
       this.game.updateUI();
     }
   }

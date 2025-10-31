@@ -3,72 +3,39 @@ import { BASE_DROP_INTERVAL, LOCK_DELAY } from '../utils/constants.js';
 
 export class Tetris {
   constructor(canvas, boardWidth, boardHeight, soundManager = null) {
-    this.canvas = canvas;
-    this.context = canvas.getContext('2d', { alpha: false });
     this.soundManager = soundManager;
 
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d', { alpha: false });
+
+    // Game Board
     this.boardWidth = boardWidth;
     this.boardHeight = boardHeight;
+    this.board = Array.from({ length: this.boardHeight }, () => Array(this.boardWidth).fill(0));
 
     this.updateBlockSize();
 
-    this.board = Array.from({ length: this.boardHeight }, () => Array(this.boardWidth).fill(0));
-
     this.pieces = {
-      O: {
-        shape: [
-          [1, 1],
-          [1, 1]
-        ],
-        color: '#FFD700'
-      },
+      O: { shape: [[1, 1], [1, 1]], color: '#FFD700' },
       I: { shape: [[1, 1, 1, 1]], color: '#00FFFF' },
-      S: {
-        shape: [
-          [0, 1, 1],
-          [1, 1, 0]
-        ],
-        color: '#FF0000'
-      },
-      Z: {
-        shape: [
-          [1, 1, 0],
-          [0, 1, 1]
-        ],
-        color: '#32CD32'
-      },
-      L: {
-        shape: [
-          [1, 0, 0],
-          [1, 1, 1]
-        ],
-        color: '#FFA500'
-      },
-      J: {
-        shape: [
-          [0, 0, 1],
-          [1, 1, 1]
-        ],
-        color: '#FF69B4'
-      },
-      T: {
-        shape: [
-          [0, 1, 0],
-          [1, 1, 1]
-        ],
-        color: '#800080'
-      }
+      S: { shape: [[0, 1, 1], [1, 1, 0]], color: '#FF0000' },
+      Z: { shape: [[1, 1, 0], [0, 1, 1]], color: '#32CD32' },
+      L: { shape: [[1, 0, 0], [1, 1, 1]], color: '#FFA500' },
+      J: { shape: [[0, 0, 1], [1, 1, 1]], color: '#FF69B4' },
+      T: { shape: [[0, 1, 0], [1, 1, 1]], color: '#800080' }
     };
 
+    // Pieces and Queue
     this.queue = new Queue();
     this.fillQueue();
     this.currentPiece = this.queue.dequeue();
     this.nextPiece = this.queue.peek();
 
-    const pieceHeight = this.currentPiece.shape.length;
-    this.position = { x: 3, y: -pieceHeight };
+    this.pieceHeight = this.currentPiece.shape.length;
 
+    this.position = { x: 3, y: -this.pieceHeight };
     this.factor = 1.0;
+
     this.dropInterval = BASE_DROP_INTERVAL * this.factor;
     this.dropCounter = 0;
     this.lastTime = 0;
@@ -91,7 +58,7 @@ export class Tetris {
 
   resize(newCanvas) {
     this.canvas = newCanvas;
-    this.context = newCanvas.getContext('2d', { alpha: false });
+    this.ctx = newCanvas.getContext('2d', { alpha: false });
 
     this.updateBlockSize();
   }
@@ -245,8 +212,8 @@ export class Tetris {
     this.currentPiece = this.queue.dequeue();
     this.nextPiece = this.queue.peek();
 
-    const pieceHeight = this.currentPiece.shape.length;
-    this.position = { x: 3, y: -pieceHeight };
+    this.pieceHeight = this.currentPiece.shape.length;
+    this.position = { x: 3, y: -this.pieceHeight };
 
     this.factor = 1.0;
     this.dropInterval = BASE_DROP_INTERVAL * this.factor;
@@ -267,8 +234,8 @@ export class Tetris {
     this.currentPiece = this.nextPiece;
 
     // Start piece above the board (negative y) so it appears gradually
-    const pieceHeight = this.currentPiece.shape.length;
-    this.position = { x: 3, y: -pieceHeight };
+    this.pieceHeight = this.currentPiece.shape.length;
+    this.position = { x: 3, y: -this.pieceHeight };
 
     this.lockTimer = 0;
     this.lockPending = false;
@@ -392,8 +359,8 @@ export class Tetris {
   }
 
   drawBoard() {
-    this.context.fillStyle = '#000';
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     const s = this.blockSize;
 
@@ -403,28 +370,28 @@ export class Tetris {
         const cell = this.board[y][x];
 
         if (cell !== 0) {
-          this.context.fillStyle = cell;
-          this.context.fillRect(x * s + 1, y * s + 1, s - 2, s - 2);
+          this.ctx.fillStyle = cell;
+          this.ctx.fillRect(x * s + 1, y * s + 1, s - 2, s - 2);
         }
       }
     }
 
     // Draw grid lines on top
-    this.context.strokeStyle = '#333';
-    this.context.lineWidth = 1.5;
+    this.ctx.strokeStyle = '#333';
+    this.ctx.lineWidth = 1.5;
 
     for (let y = 0; y <= this.boardHeight; y++) {
-      this.context.beginPath();
-      this.context.moveTo(0, y * s);
-      this.context.lineTo(this.boardWidth * s, y * s);
-      this.context.stroke();
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y * s);
+      this.ctx.lineTo(this.boardWidth * s, y * s);
+      this.ctx.stroke();
     }
 
     for (let x = 0; x <= this.boardWidth; x++) {
-      this.context.beginPath();
-      this.context.moveTo(x * s, 0);
-      this.context.lineTo(x * s, this.boardHeight * s);
-      this.context.stroke();
+      this.ctx.beginPath();
+      this.ctx.moveTo(x * s, 0);
+      this.ctx.lineTo(x * s, this.boardHeight * s);
+      this.ctx.stroke();
     }
   }
 
@@ -447,8 +414,8 @@ export class Tetris {
     // Don't draw ghost if it's at the same position as current piece
     if (ghostY === this.position.y) return;
 
-    this.context.strokeStyle = '#666';
-    this.context.lineWidth = 2;
+    this.ctx.strokeStyle = '#666';
+    this.ctx.lineWidth = 2;
 
     shape.forEach((row, y) =>
       row.forEach((v, x) => {
@@ -457,7 +424,7 @@ export class Tetris {
           const posY = (ghostY + y) * s;
 
           // Draw outline rectangle
-          this.context.strokeRect(posX + 1, posY + 1, s - 3, s - 3);
+          this.ctx.strokeRect(posX + 1, posY + 1, s - 3, s - 3);
         }
       })
     );
@@ -467,11 +434,11 @@ export class Tetris {
     const { shape, color } = this.currentPiece;
     const s = this.blockSize;
 
-    this.context.fillStyle = color;
+    this.ctx.fillStyle = color;
 
     shape.forEach((row, y) =>
       row.forEach((v, x) => {
-        if (v) this.context.fillRect((this.position.x + x) * s + 1, (this.position.y + y) * s + 1, s - 2, s - 2);
+        if (v) this.ctx.fillRect((this.position.x + x) * s + 1, (this.position.y + y) * s + 1, s - 2, s - 2);
       })
     );
   }

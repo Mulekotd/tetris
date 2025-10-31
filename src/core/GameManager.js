@@ -21,6 +21,7 @@ function drawNextPiece(game) {
     const offsetY = (canvas.height - shape.length * BLOCK_SIZE) / 2;
 
     ctx.fillStyle = color;
+
     shape.forEach((row, y) => {
       row.forEach((v, x) => {
         if (v) {
@@ -57,7 +58,6 @@ export class GameManager {
       this.game.resize(this.canvas);
     });
 
-    // Setup start button
     const startButton = document.getElementById('start-button');
     const overlay = document.getElementById('game-overlay');
 
@@ -73,11 +73,9 @@ export class GameManager {
   }
 
   setupCanvas() {
-    // Calculate height based on container
     const container = document.querySelector('.game-container');
     const containerHeight = container.offsetHeight;
 
-    // Use container height for board
     const maxHeight = containerHeight;
     const blockSize = Math.ceil(maxHeight / BOARD_HEIGHT);
 
