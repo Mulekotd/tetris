@@ -48,9 +48,18 @@ export class GameManager {
   init() {
     this.canvas = document.getElementById('game-layer');
     this.ctx = this.canvas.getContext('2d', { alpha: false });
+    const skeleton = document.getElementById('canvas-skeleton');
 
     this.setupCanvas();
     this.setupGame();
+
+    // Hide skeleton and show canvas after dimensions are set
+    requestAnimationFrame(() => {
+      if (skeleton) {
+        skeleton.classList.add('hidden');
+      }
+      this.canvas.classList.add('loaded');
+    });
 
     window.addEventListener('resize', () => {
       this.setupCanvas();
