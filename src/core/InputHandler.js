@@ -1,8 +1,9 @@
 import { KEYS } from '../utils/constants.js';
 
 export class InputHandler {
-  constructor(game) {
+  constructor(game, gameManager) {
     this.game = game;
+    this.gameManager = gameManager;
     this.isListening = false;
   }
 
@@ -14,6 +15,9 @@ export class InputHandler {
   }
 
   handleKeyDown(e) {
+    // Block all inputs if game hasn't started yet
+    if (!this.gameManager.isStarted) return;
+
     const key = e.key.toLowerCase();
 
     if (KEYS.PAUSE.includes(key)) {
@@ -37,15 +41,36 @@ export class InputHandler {
         e.preventDefault();
         this.rotate();
         break;
+      case KEYS.HARD_DROP.includes(key):
+        e.preventDefault();
+        this.hardDrop();
+        break;
       case KEYS.RESTART.includes(key):
         this.game.restart();
         break;
     }
   }
 
+  applyGravity() {
+    while (!this.game.checkCollision(0, 1)) {
+      this.game.position.y++;
+    }
+
+    if (this.game.checkCollision(0, 0)) {
+      this.game.lockPending = true;
+    } else {
+      this.game.lockPending = false;
+    }
+  }
+
   move(dir) {
     if (!this.game.checkCollision(dir, 0)) {
       this.game.position.x += dir;
+
+      if (this.game.lockPending) {
+        this.applyGravity();
+      }
+
       this.game.lockTimer = 0;
     }
   }
@@ -54,9 +79,27 @@ export class InputHandler {
     if (!this.game.checkCollision(0, 1)) {
       this.game.position.y++;
       this.game.score += 1;
+
       this.game.updateUI();
     } else {
       this.game.lockPending = true;
+    }
+  }
+
+  hardDrop() {
+    let dropDistance = 0;
+
+    while (!this.game.checkCollision(0, dropDistance + 1)) {
+      dropDistance++;
+    }
+
+    if (dropDistance > 0) {
+      this.game.position.y += dropDistance;
+      this.game.score += dropDistance * 2;
+
+      this.game.mergePiece();
+      this.game.resetPiece();
+      this.game.updateUI();
     }
   }
 
@@ -86,6 +129,7 @@ export class InputHandler {
         if (!this.game.checkCollision(x, y)) {
           this.game.position.x += x;
           this.game.position.y += y;
+
           rotatedSuccessfully = true;
           break;
         }
@@ -93,7 +137,12 @@ export class InputHandler {
 
       if (!rotatedSuccessfully) {
         this.game.currentPiece.shape = oldShape;
+        return;
       }
+    }
+
+    if (this.game.lockPending) {
+      this.applyGravity();
     }
 
     this.game.lockTimer = 0;

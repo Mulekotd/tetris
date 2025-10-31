@@ -12,7 +12,8 @@ export const KEYS = {
   LEFT: ['a', 'arrowleft'],
   RIGHT: ['d', 'arrowright'],
   DOWN: ['s', 'arrowdown'],
-  ROTATE: [' '],
+  ROTATE: ['w', 'arrowup'],
+  HARD_DROP: [' '],
   PAUSE: ['p'],
   RESTART: ['r']
 };

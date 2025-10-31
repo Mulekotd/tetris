@@ -9,7 +9,7 @@ function drawNextPiece(game) {
 
   if (!canvas) return;
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: false });
 
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -79,7 +79,7 @@ export class GameManager {
 
     // Use container height for board
     const maxHeight = containerHeight;
-    const blockSize = Math.floor(maxHeight / BOARD_HEIGHT);
+    const blockSize = Math.ceil(maxHeight / BOARD_HEIGHT);
 
     const displayWidth = blockSize * BOARD_WIDTH;
     const displayHeight = blockSize * BOARD_HEIGHT;
@@ -97,7 +97,7 @@ export class GameManager {
 
   setupGame() {
     this.game = new Tetris(this.canvas, BOARD_WIDTH, BOARD_HEIGHT, this.soundManager);
-    this.inputHandler = new InputHandler(this.game);
+    this.inputHandler = new InputHandler(this.game, this);
     this.inputHandler.listen();
   }
 

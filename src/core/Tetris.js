@@ -65,7 +65,8 @@ export class Tetris {
     this.currentPiece = this.queue.dequeue();
     this.nextPiece = this.queue.peek();
 
-    this.position = { x: 3, y: 0 };
+    const pieceHeight = this.currentPiece.shape.length;
+    this.position = { x: 3, y: -pieceHeight };
 
     this.factor = 1.0;
     this.dropInterval = BASE_DROP_INTERVAL * this.factor;
@@ -117,12 +118,59 @@ export class Tetris {
         const newX = this.position.x + x + offsetX;
         const newY = this.position.y + y + offsetY;
 
-        if (newX < 0 || newX >= this.boardWidth || newY >= this.boardHeight) return true;
+        if (newX < 0 || newX >= this.boardWidth || newY >= this.boardHeight) {
+          return true;
+        }
 
-        if (newY >= 0 && this.board[newY][newX] !== 0) return true;
+        if (newY >= 0 && this.board[newY][newX] !== 0) {
+          return true;
+        }
       }
     }
+
     return false;
+  }
+
+  checkTopCollision() {
+    // Check if any blocks exist at the very top row of the board
+    for (let x = 0; x < this.boardWidth; x++) {
+      if (this.board[0][x] !== 0) return true;
+    }
+
+    return false;
+  }
+
+  // Check if board is more than half filled
+  isBoardHalfFilled() {
+    let filledCells = 0;
+
+    const totalCells = this.boardWidth * this.boardHeight;
+
+    for (let y = 0; y < this.boardHeight; y++) {
+      for (let x = 0; x < this.boardWidth; x++) {
+        if (this.board[y][x] !== 0) {
+          filledCells++;
+        }
+      }
+    }
+
+    return filledCells >= totalCells / 2;
+  }
+
+  // Check if fast music should be playing
+  shouldPlayFastMusic() {
+    return this.level >= 10 || this.isBoardHalfFilled();
+  }
+
+  // Update background music based on game state
+  updateBackgroundMusic() {
+    if (!this.soundManager) return;
+
+    if (this.shouldPlayFastMusic()) {
+      this.soundManager.switchToFastMusic();
+    } else {
+      this.soundManager.switchToNormalMusic();
+    }
   }
 
   togglePause() {
@@ -134,6 +182,9 @@ export class Tetris {
     const overlayContent = overlay.querySelector('.overlay-content');
 
     if (this.isPaused) {
+      this.soundManager.pauseBackground();
+      this.soundManager.playPauseSound();
+
       overlayContent.innerHTML = `
         <h1>PAUSED</h1>
         <p>Press P to resume</p>
@@ -141,11 +192,17 @@ export class Tetris {
       overlay.classList.remove('hidden');
     } else {
       overlay.classList.add('hidden');
+      this.soundManager.resumeBackground();
     }
   }
 
   showGameOver() {
     this.isGameOver = true;
+
+    // Play game over sound
+    if (this.soundManager) {
+      this.soundManager.playGameOver();
+    }
 
     const overlay = document.getElementById('game-overlay');
     const overlayContent = overlay.querySelector('.overlay-content');
@@ -171,12 +228,9 @@ export class Tetris {
 
     overlay.classList.remove('hidden');
 
-    // Adicionar evento ao botão
     setTimeout(() => {
       const restartBtn = document.getElementById('restart-button');
-      if (restartBtn) {
-        restartBtn.addEventListener('click', () => this.restart());
-      }
+      if (restartBtn) restartBtn.addEventListener('click', () => this.restart());
     }, 0);
   }
 
@@ -191,7 +245,8 @@ export class Tetris {
     this.currentPiece = this.queue.dequeue();
     this.nextPiece = this.queue.peek();
 
-    this.position = { x: 3, y: 0 };
+    const pieceHeight = this.currentPiece.shape.length;
+    this.position = { x: 3, y: -pieceHeight };
 
     this.factor = 1.0;
     this.dropInterval = BASE_DROP_INTERVAL * this.factor;
@@ -210,18 +265,22 @@ export class Tetris {
 
   resetPiece() {
     this.currentPiece = this.nextPiece;
-    this.queue.dequeue();
-    this.queue.enqueue(this.randomPiece());
-    this.nextPiece = this.queue.peek();
 
-    this.position = { x: 3, y: 0 };
+    // Start piece above the board (negative y) so it appears gradually
+    const pieceHeight = this.currentPiece.shape.length;
+    this.position = { x: 3, y: -pieceHeight };
 
     this.lockTimer = 0;
     this.lockPending = false;
 
     if (this.checkCollision(0, 0)) {
       this.showGameOver();
+      return;
     }
+
+    this.queue.dequeue();
+    this.queue.enqueue(this.randomPiece());
+    this.nextPiece = this.queue.peek();
   }
 
   adjustSpeed() {
@@ -229,6 +288,8 @@ export class Tetris {
 
     if (newLevel !== this.level) {
       this.level = newLevel;
+      this.soundManager.playNextLevelSound();
+      this.updateBackgroundMusic();
     }
 
     this.factor = Math.max(0.1, 1.0 - (this.level - 1) * 0.08);
@@ -249,6 +310,10 @@ export class Tetris {
     }
 
     if (linesCleared > 0) {
+      if (this.soundManager) {
+        this.soundManager.playLineClear();
+      }
+
       this.totalClearedLines += linesCleared;
       const lineScores = [0, 100, 300, 500, 800];
 
@@ -277,12 +342,23 @@ export class Tetris {
           const boardY = this.position.y + y;
           const boardX = this.position.x + x;
 
-          if (boardY >= 0 && boardY < this.boardHeight) this.board[boardY][boardX] = color;
+          if (boardY >= 0 && boardY < this.boardHeight) {
+            this.board[boardY][boardX] = color;
+          }
         }
       })
     );
 
     this.clearFullLines();
+
+    // Check if blocks are touching the top after merge - game over condition
+    if (this.checkTopCollision()) {
+      this.showGameOver();
+      return;
+    }
+
+    // Update background music based on board state
+    this.updateBackgroundMusic();
   }
 
   update(deltaTime) {
