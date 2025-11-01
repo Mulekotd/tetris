@@ -21,7 +21,7 @@ export class SoundManager {
     // Background music (fast)
     this.bgMusicFast = new Audio('./src/assets/audio/bgm-fast.mp3');
     this.bgMusicFast.loop = true;
-    this.bgMusicFast.volume = 0.2;
+    this.bgMusicFast.volume = 0.4;
 
     // Game over sound
     this.gameOverSound = new Audio('./src/assets/audio/game-over.mp3');
@@ -31,17 +31,17 @@ export class SoundManager {
     // Line clear sound
     this.lineClearSound = new Audio('./src/assets/audio/line-clear.mp3');
     this.lineClearSound.loop = false;
-    this.lineClearSound.volume = 0.6;
+    this.lineClearSound.volume = 0.4;
 
     // Next level sound
     this.nextLevelSound = new Audio('./src/assets/audio/next-level.mp3');
     this.nextLevelSound.loop = false;
-    this.nextLevelSound.volume = 0.2;
+    this.nextLevelSound.volume = 0.6;
 
     // Pause sound
     this.pauseSound = new Audio('./src/assets/audio/pause.mp3');
-    this.nextLevelSound.loop = false;
-    this.nextLevelSound.volume = 0.1;
+    this.pauseSound.loop = false;
+    this.pauseSound.volume = 0.2;
 
     this.currentBgMusic = this.bgMusic;
   }
