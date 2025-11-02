@@ -110,7 +110,7 @@ export class UIManager {
           <span class="stat-text">Level Reached</span>
         </div>
       </div>
-      <button id="restart-button" class="restart-button">PLAY AGAIN</button>
+      <button id="restart-button" class="button">PLAY AGAIN</button>
     `;
 
     this.overlay.classList.remove('hidden');

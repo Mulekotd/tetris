@@ -215,34 +215,6 @@ body::-webkit-scrollbar {
   font-size: 14px;
 }
 
-.start-button {
-  padding: 15px 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-.start-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-.start-button:active {
-  transform: translateY(0);
-}
-
-.start-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
 .overlay {
   position: absolute;
   top: 0;
@@ -312,7 +284,7 @@ body::-webkit-scrollbar {
   margin-top: 5px;
 }
 
-.restart-button {
+.button {
   margin-top: 20px;
   padding: 15px 40px;
   background: linear-gradient(135deg, #DC143C 0%, #8B0000 100%);
@@ -326,13 +298,19 @@ body::-webkit-scrollbar {
   box-shadow: 0 4px 15px rgba(220, 20, 60, 0.4);
 }
 
-.restart-button:hover {
+.button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(220, 20, 60, 0.6);
 }
 
-.restart-button:active {
+.button:active {
   transform: translateY(0);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .canvas-wrapper {
