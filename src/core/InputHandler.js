@@ -14,6 +14,9 @@ export class InputHandler {
     // Block all inputs if game hasn't started
     if (!this.gameManager.isStarted) return;
 
+    // Disable inputs if game is over
+    if (this.game.isGameOver) return;
+
     const key = e.key.toLowerCase();
 
     if (KEYS.PAUSE.includes(key)) {

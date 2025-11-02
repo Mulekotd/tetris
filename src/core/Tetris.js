@@ -1,9 +1,11 @@
-import { Queue } from '../utils/structs/Queue.js';
 import { BASE_DROP_INTERVAL, LOCK_DELAY } from '../utils/constants.js';
 
+import { Queue } from '../utils/structs/Queue.js';
+
 export class Tetris {
-  constructor(canvas, boardWidth, boardHeight, soundManager = null) {
+  constructor(canvas, boardWidth, boardHeight, soundManager = null, uiManager = null) {
     this.soundManager = soundManager;
+    this.uiManager = uiManager;
 
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d', { alpha: false });
@@ -25,12 +27,13 @@ export class Tetris {
       T: { shape: [[0, 1, 0], [1, 1, 1]], color: '#800080' }
     };
 
-    // Pieces and Queue
+    // Queue
     this.queue = new Queue();
-    this.fillQueue();
+    this.fillQueue()
+
+    // Pieces
     this.currentPiece = this.queue.dequeue();
     this.nextPiece = this.queue.peek();
-
     this.pieceHeight = this.currentPiece.shape.length;
 
     this.position = { x: 3, y: -this.pieceHeight };
@@ -48,8 +51,15 @@ export class Tetris {
     this.score = 0;
     this.level = 1;
 
+    // States
     this.isPaused = false;
     this.isGameOver = false;
+  }
+
+  updateUI() {
+    if (this.uiManager) {
+      this.uiManager.updateStats(this.score, this.totalClearedLines, this.level);
+    }
   }
 
   updateBlockSize() {
@@ -59,7 +69,6 @@ export class Tetris {
   resize(newCanvas) {
     this.canvas = newCanvas;
     this.ctx = newCanvas.getContext('2d', { alpha: false });
-
     this.updateBlockSize();
   }
 
@@ -85,13 +94,9 @@ export class Tetris {
         const newX = this.position.x + x + offsetX;
         const newY = this.position.y + y + offsetY;
 
-        if (newX < 0 || newX >= this.boardWidth || newY >= this.boardHeight) {
-          return true;
-        }
+        if (newX < 0 || newX >= this.boardWidth || newY >= this.boardHeight) return true;
 
-        if (newY >= 0 && this.board[newY][newX] !== 0) {
-          return true;
-        }
+        if (newY >= 0 && this.board[newY][newX] !== 0) return true;
       }
     }
 
@@ -115,9 +120,7 @@ export class Tetris {
 
     for (let y = 0; y < this.boardHeight; y++) {
       for (let x = 0; x < this.boardWidth; x++) {
-        if (this.board[y][x] !== 0) {
-          filledCells++;
-        }
+        if (this.board[y][x] !== 0) filledCells++;
       }
     }
 
@@ -145,21 +148,23 @@ export class Tetris {
 
     this.isPaused = !this.isPaused;
 
-    const overlay = document.getElementById('game-overlay');
-    const overlayContent = overlay.querySelector('.overlay-content');
-
     if (this.isPaused) {
-      this.soundManager.pauseBackground();
-      this.soundManager.playPauseSound();
+      if (this.soundManager) {
+        this.soundManager.pauseBackground();
+        this.soundManager.playPauseSound();
+      }
 
-      overlayContent.innerHTML = `
-        <h1>PAUSED</h1>
-        <p>Press P to resume</p>
-      `;
-      overlay.classList.remove('hidden');
+      if (this.uiManager) {
+        this.uiManager.showPause();
+      }
     } else {
-      overlay.classList.add('hidden');
-      this.soundManager.resumeBackground();
+      if (this.uiManager) {
+        this.uiManager.hideOverlay();
+      }
+
+      if (this.soundManager) {
+        this.soundManager.resumeBackground();
+      }
     }
   }
 
@@ -171,39 +176,16 @@ export class Tetris {
       this.soundManager.playGameOver();
     }
 
-    const overlay = document.getElementById('game-overlay');
-    const overlayContent = overlay.querySelector('.overlay-content');
-
-    overlayContent.innerHTML = `
-      <h1>GAME OVER</h1>
-      <div class="game-over-score">
-        <div class="final-score">${this.score}</div>
-        <div class="score-label">Final Score</div>
-      </div>
-      <div class="game-over-stats">
-        <div class="stat">
-          <span class="stat-number">${this.totalClearedLines}</span>
-          <span class="stat-text">Lines Cleared</span>
-        </div>
-        <div class="stat">
-          <span class="stat-number">${this.level}</span>
-          <span class="stat-text">Level Reached</span>
-        </div>
-      </div>
-      <button id="restart-button" class="restart-button">PLAY AGAIN</button>
-    `;
-
-    overlay.classList.remove('hidden');
-
-    setTimeout(() => {
-      const restartBtn = document.getElementById('restart-button');
-      if (restartBtn) restartBtn.addEventListener('click', () => this.restart());
-    }, 0);
+    // Show game over UI
+    if (this.uiManager) {
+      this.uiManager.showGameOver(this.score, this.totalClearedLines, this.level, () => this.restart());
+    }
   }
 
   restart() {
-    const overlay = document.getElementById('game-overlay');
-    overlay.classList.add('hidden');
+    if (this.uiManager) {
+      this.uiManager.hideOverlay();
+    }
 
     this.board = Array.from({ length: this.boardHeight }, () => Array(this.boardWidth).fill(0));
 
@@ -255,7 +237,9 @@ export class Tetris {
 
     if (newLevel !== this.level) {
       this.level = newLevel;
-      this.soundManager.playNextLevelSound();
+      if (this.soundManager) {
+        this.soundManager.playNextLevelSound();
+      }
       this.updateBackgroundMusic();
     }
 
@@ -288,16 +272,6 @@ export class Tetris {
       this.adjustSpeed();
       this.updateUI();
     }
-  }
-
-  updateUI() {
-    const scoreDisplay = document.getElementById('score-display');
-    const linesDisplay = document.getElementById('lines-display');
-    const levelDisplay = document.getElementById('level-display');
-
-    if (scoreDisplay) scoreDisplay.textContent = this.score;
-    if (linesDisplay) linesDisplay.textContent = this.totalClearedLines;
-    if (levelDisplay) levelDisplay.textContent = this.level;
   }
 
   mergePiece() {
