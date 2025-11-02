@@ -8,7 +8,14 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="game-container">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading...</div>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container" class="game-container hidden">
       <div class="canvas-wrapper">
         <canvas id="game-layer"></canvas>
         <div id="game-overlay" class="overlay">

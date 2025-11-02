@@ -12,16 +12,23 @@ export class GameManager {
 
     this.game = null;
     this.isStarted = false;
+    this.isLoading = true;
 
     this.inputHandler = null;
     this.soundManager = new SoundManager();
-    this.uiManager    = new UIManager();
+    this.uiManager = new UIManager();
+
+    this.loadingScreen = document.getElementById('loading-screen');
+    this.gameContainer = document.getElementById('game-container');
   }
 
   init() {
     this.canvas = document.getElementById('game-layer');
     this.ctx = this.canvas.getContext('2d', { alpha: false });
 
+    this.finishLoading();
+
+    // Setup canvas with correct dimensions
     this.setupCanvas();
 
     // Initialize UI Manager
@@ -46,6 +53,20 @@ export class GameManager {
         this.isStarted = true;
       }
     });
+  }
+
+  finishLoading() {
+    this.isLoading = false;
+
+    // Hide loading screen
+    if (this.loadingScreen) {
+      this.loadingScreen.classList.add('hidden');
+    }
+
+    // Show game container
+    if (this.gameContainer) {
+      this.gameContainer.classList.remove('hidden');
+    }
   }
 
   setupCanvas() {
