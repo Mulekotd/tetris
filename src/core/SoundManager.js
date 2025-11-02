@@ -1,56 +1,62 @@
 export class SoundManager {
   constructor() {
-    this.bgMusic = null;
-    this.bgMusicFast = null;
+    this.sounds = {};
     this.currentBgMusic = null;
-
-    this.pauseSound = null;
-    this.gameOverSound = null;
-    this.lineClearSound = null;
-    this.nextLevelSound = null;
-
     this.isPaused = false;
+    this.isLoaded = false;
+
+    this.config = {
+      bgMusic: { path: './src/assets/audio/bgm.mp3', loop: true, volume: 0.2 },
+      bgMusicFast: { path: './src/assets/audio/bgm-fast.mp3', loop: true, volume: 0.4 },
+      gameOver: { path: './src/assets/audio/game-over.mp3', loop: false, volume: 0.4 },
+      lineClear: { path: './src/assets/audio/line-clear.mp3', loop: false, volume: 0.4 },
+      nextLevel: { path: './src/assets/audio/next-level.mp3', loop: false, volume: 0.6 },
+      pause: { path: './src/assets/audio/pause.mp3', loop: false, volume: 0.2 }
+    };
   }
 
   load() {
-    // Background music (normal)
-    this.bgMusic = new Audio('./src/assets/audio/bgm.mp3');
-    this.bgMusic.loop = true;
-    this.bgMusic.volume = 0.2;
+    if (this.isLoaded) return;
 
-    // Background music (fast)
-    this.bgMusicFast = new Audio('./src/assets/audio/bgm-fast.mp3');
-    this.bgMusicFast.loop = true;
-    this.bgMusicFast.volume = 0.4;
+    Object.entries(this.config).forEach(([key, config]) => {
+      const audio = new Audio(config.path);
+      audio.loop = config.loop;
+      audio.volume = config.volume;
+      this.sounds[key] = audio;
+    });
 
-    // Game over sound
-    this.gameOverSound = new Audio('./src/assets/audio/game-over.mp3');
-    this.gameOverSound.loop = false;
-    this.gameOverSound.volume = 0.4;
-
-    // Line clear sound
-    this.lineClearSound = new Audio('./src/assets/audio/line-clear.mp3');
-    this.lineClearSound.loop = false;
-    this.lineClearSound.volume = 0.4;
-
-    // Next level sound
-    this.nextLevelSound = new Audio('./src/assets/audio/next-level.mp3');
-    this.nextLevelSound.loop = false;
-    this.nextLevelSound.volume = 0.6;
-
-    // Pause sound
-    this.pauseSound = new Audio('./src/assets/audio/pause.mp3');
-    this.pauseSound.loop = false;
-    this.pauseSound.volume = 0.2;
-
-    this.currentBgMusic = this.bgMusic;
+    this.currentBgMusic = this.sounds.bgMusic;
+    this.isLoaded = true;
   }
 
+  ensureLoaded() {
+    if (!this.isLoaded) this.load();
+  }
+
+  playSound(soundKey, restart = true) {
+    this.ensureLoaded();
+
+    const sound = this.sounds[soundKey];
+    if (!sound) return;
+
+    if (restart) sound.currentTime = 0;
+    sound.play();
+  }
+
+  stopSound(soundKey) {
+    const sound = this.sounds[soundKey];
+    if (!sound) return;
+
+    sound.pause();
+    sound.currentTime = 0;
+  }
+
+  // Background Music Control
   playBackground() {
-    if (!this.bgMusic) this.load();
-    this.currentBgMusic = this.bgMusic;
+    this.ensureLoaded();
+    this.currentBgMusic = this.sounds.bgMusic;
     this.isPaused = false;
-    this.bgMusic.play();
+    this.sounds.bgMusic.play();
   }
 
   pauseBackground() {
@@ -68,14 +74,8 @@ export class SoundManager {
   }
 
   stopBackground() {
-    if (this.bgMusic) {
-      this.bgMusic.pause();
-      this.bgMusic.currentTime = 0;
-    }
-    if (this.bgMusicFast) {
-      this.bgMusicFast.pause();
-      this.bgMusicFast.currentTime = 0;
-    }
+    this.stopSound('bgMusic');
+    this.stopSound('bgMusicFast');
   }
 
   restartBackground() {
@@ -83,54 +83,46 @@ export class SoundManager {
     this.playBackground();
   }
 
-  switchToFastMusic() {
-    if (!this.bgMusicFast || this.currentBgMusic === this.bgMusicFast) return;
+  switchBackgroundMusic(targetKey) {
+    const target = this.sounds[targetKey];
+    if (!target || this.currentBgMusic === target) return;
 
-    this.bgMusic.pause();
+    // Pause current
+    if (this.currentBgMusic) {
+      this.currentBgMusic.pause();
+    }
 
-    this.bgMusicFast.currentTime = 0;
-    this.bgMusicFast.play();
+    // Play new
+    target.currentTime = 0;
+    target.play();
 
-    this.currentBgMusic = this.bgMusicFast;
+    this.currentBgMusic = target;
     this.isPaused = false;
+  }
+
+  switchToFastMusic() {
+    this.switchBackgroundMusic('bgMusicFast');
   }
 
   switchToNormalMusic() {
-    if (!this.bgMusic || this.currentBgMusic === this.bgMusic) return;
-
-    this.bgMusicFast.pause();
-
-    this.bgMusic.currentTime = 0;
-    this.bgMusic.play();
-
-    this.currentBgMusic = this.bgMusic;
-    this.isPaused = false;
+    this.switchBackgroundMusic('bgMusic');
   }
 
+  // Sound Effects
   playGameOver() {
-    if (!this.gameOverSound) this.load();
-
     this.stopBackground();
-
-    this.gameOverSound.currentTime = 0;
-    this.gameOverSound.play();
+    this.playSound('gameOver');
   }
 
   playPauseSound() {
-    if (!this.pauseSound) this.load();
-    this.pauseSound.currentTime = 0;
-    this.pauseSound.play();
+    this.playSound('pause');
   }
 
   playLineClear() {
-    if (!this.lineClearSound) this.load();
-    this.lineClearSound.currentTime = 0;
-    this.lineClearSound.play();
+    this.playSound('lineClear');
   }
 
   playNextLevelSound() {
-    if (!this.nextLevelSound) this.load();
-    this.nextLevelSound.currentTime = 0;
-    this.nextLevelSound.play();
+    this.playSound('nextLevel');
   }
 }

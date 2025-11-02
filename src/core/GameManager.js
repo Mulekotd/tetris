@@ -1,38 +1,9 @@
+import { BOARD_WIDTH, BOARD_HEIGHT } from '../utils/constants.js';
+
 import { Tetris } from './Tetris.js';
 import { InputHandler } from './InputHandler.js';
 import { SoundManager } from './SoundManager.js';
-import { BOARD_WIDTH, BOARD_HEIGHT, BLOCK_SIZE } from '../utils/constants.js';
-
-// Next Piece Preview
-function drawNextPiece(game) {
-  const canvas = document.getElementById('next-piece-canvas');
-
-  if (!canvas) return;
-
-  const ctx = canvas.getContext('2d', { alpha: false });
-
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  if (game.nextPiece) {
-    const { shape, color } = game.nextPiece;
-
-    const offsetX = (canvas.width - shape[0].length * BLOCK_SIZE) / 2;
-    const offsetY = (canvas.height - shape.length * BLOCK_SIZE) / 2;
-
-    ctx.fillStyle = color;
-
-    shape.forEach((row, y) => {
-      row.forEach((v, x) => {
-        if (v) {
-          ctx.fillRect(offsetX + x * BLOCK_SIZE, offsetY + y * BLOCK_SIZE, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
-        }
-      });
-    });
-  }
-
-  requestAnimationFrame(() => drawNextPiece(game));
-}
+import { UIManager } from './UIManager.js';
 
 export class GameManager {
   constructor() {
@@ -44,6 +15,7 @@ export class GameManager {
 
     this.inputHandler = null;
     this.soundManager = new SoundManager();
+    this.uiManager    = new UIManager();
   }
 
   init() {
@@ -51,6 +23,10 @@ export class GameManager {
     this.ctx = this.canvas.getContext('2d', { alpha: false });
 
     this.setupCanvas();
+
+    // Initialize UI Manager
+    this.uiManager.init();
+
     this.setupGame();
 
     window.addEventListener('resize', () => {
@@ -94,13 +70,13 @@ export class GameManager {
   }
 
   setupGame() {
-    this.game = new Tetris(this.canvas, BOARD_WIDTH, BOARD_HEIGHT, this.soundManager);
+    this.game = new Tetris(this.canvas, BOARD_WIDTH, BOARD_HEIGHT, this.soundManager, this.uiManager);
     this.inputHandler = new InputHandler(this.game, this);
     this.inputHandler.listen();
   }
 
   start() {
     this.game.loop();
-    drawNextPiece(this.game);
+    this.uiManager.loop(this.game);
   }
 }
