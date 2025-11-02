@@ -10,7 +10,7 @@ export class SoundManager {
       bgMusicFast: { path: './src/assets/audio/bgm-fast.mp3', loop: true, volume: 0.4 },
       gameOver: { path: './src/assets/audio/game-over.mp3', loop: false, volume: 0.4 },
       lineClear: { path: './src/assets/audio/line-clear.mp3', loop: false, volume: 0.4 },
-      nextLevel: { path: './src/assets/audio/next-level.mp3', loop: false, volume: 0.6 },
+      nextLevel: { path: './src/assets/audio/next-level.mp3', loop: false, volume: 1.0 },
       pause: { path: './src/assets/audio/pause.mp3', loop: false, volume: 0.2 }
     };
   }
