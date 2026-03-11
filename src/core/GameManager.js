@@ -70,12 +70,42 @@ export class GameManager {
   }
 
   setupCanvas() {
-    const container = document.querySelector('.game-container');
-    const containerHeight = container.offsetHeight;
-
-    const maxHeight = containerHeight;
-    const blockSize = Math.ceil(maxHeight / BOARD_HEIGHT);
-
+    const canvasWrapper = document.querySelector('.canvas-wrapper');
+    const gameContainer = document.querySelector('.game-container');
+    
+    // Temporarily reset wrapper to get available space
+    canvasWrapper.style.width = '';
+    canvasWrapper.style.height = '';
+    
+    const containerRect = gameContainer.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+    
+    // Calculate available space based on device type
+    let availableWidth, availableHeight;
+    
+    if (isMobile) {
+      // On mobile, account for top panel and controls info
+      const mobileTopPanel = document.querySelector('.mobile-top-panel');
+      const mobileControlsInfo = document.querySelector('.mobile-controls-info');
+      const topPanelHeight = mobileTopPanel ? mobileTopPanel.getBoundingClientRect().height : 0;
+      const controlsInfoHeight = mobileControlsInfo ? mobileControlsInfo.getBoundingClientRect().height : 0;
+      const padding = 32; // Account for gaps and padding
+      
+      availableWidth = Math.min(containerRect.width - 16, 360);
+      availableHeight = containerRect.height - topPanelHeight - controlsInfoHeight - padding;
+    } else {
+      // On desktop/tablet
+      availableWidth = Math.min(containerRect.width * 0.5, 400);
+      availableHeight = containerRect.height - 40;
+    }
+    
+    // Calculate block size based on available space while maintaining aspect ratio
+    const blockSizeByWidth = Math.floor(availableWidth / BOARD_WIDTH);
+    const blockSizeByHeight = Math.floor(availableHeight / BOARD_HEIGHT);
+    
+    // Use the smaller block size to fit within both constraints
+    const blockSize = Math.max(1, Math.min(blockSizeByWidth, blockSizeByHeight));
+    
     const displayWidth = blockSize * BOARD_WIDTH;
     const displayHeight = blockSize * BOARD_HEIGHT;
 
@@ -85,6 +115,10 @@ export class GameManager {
 
     this.canvas.style.width = `${displayWidth}px`;
     this.canvas.style.height = `${displayHeight}px`;
+    
+    // Set wrapper to match canvas size exactly for proper overlay positioning
+    canvasWrapper.style.width = `${displayWidth}px`;
+    canvasWrapper.style.height = `${displayHeight}px`;
 
     this.ctx.setTransform(1, 0, 0, 1, 0, 0);
     this.ctx.scale(dpr, dpr);

@@ -5,9 +5,18 @@ export class UIManager {
     this.nextPieceCanvas = null;
     this.nextPieceCtx = null;
 
+    // Mobile next piece canvas
+    this.nextPieceCanvasMobile = null;
+    this.nextPieceCtxMobile = null;
+
     this.scoreDisplay = null;
     this.linesDisplay = null;
     this.levelDisplay = null;
+
+    // Mobile displays
+    this.scoreDisplayMobile = null;
+    this.linesDisplayMobile = null;
+    this.levelDisplayMobile = null;
 
     this.overlay = null;
     this.overlayContent = null;
@@ -23,10 +32,22 @@ export class UIManager {
       this.nextPieceCtx = this.nextPieceCanvas.getContext('2d', { alpha: false });
     }
 
+    // Initialize mobile next piece canvas
+    this.nextPieceCanvasMobile = document.getElementById('next-piece-canvas-mobile');
+
+    if (this.nextPieceCanvasMobile) {
+      this.nextPieceCtxMobile = this.nextPieceCanvasMobile.getContext('2d', { alpha: false });
+    }
+
     // Initialize display elements
     this.scoreDisplay = document.getElementById('score-display');
     this.linesDisplay = document.getElementById('lines-display');
     this.levelDisplay = document.getElementById('level-display');
+
+    // Initialize mobile display elements
+    this.scoreDisplayMobile = document.getElementById('score-display-mobile');
+    this.linesDisplayMobile = document.getElementById('lines-display-mobile');
+    this.levelDisplayMobile = document.getElementById('level-display-mobile');
 
     // Initialize overlay elements
     this.overlay = document.getElementById('game-overlay');
@@ -38,17 +59,29 @@ export class UIManager {
 
   // Update score, lines, and level displays
   updateStats(score, lines, level) {
+    // Desktop displays
     if (this.scoreDisplay) this.scoreDisplay.textContent = score;
     if (this.linesDisplay) this.linesDisplay.textContent = lines;
     if (this.levelDisplay) this.levelDisplay.textContent = level;
+
+    // Mobile displays
+    if (this.scoreDisplayMobile) this.scoreDisplayMobile.textContent = score;
+    if (this.linesDisplayMobile) this.linesDisplayMobile.textContent = lines;
+    if (this.levelDisplayMobile) this.levelDisplayMobile.textContent = level;
   }
 
   // Draw next piece preview
   drawNextPiece(nextPiece) {
-    if (!this.nextPieceCanvas || !this.nextPieceCtx) return;
+    // Draw on desktop canvas
+    this.drawNextPieceOnCanvas(this.nextPieceCanvas, this.nextPieceCtx, nextPiece, BLOCK_SIZE);
 
-    const ctx = this.nextPieceCtx;
-    const canvas = this.nextPieceCanvas;
+    // Draw on mobile canvas (smaller block size)
+    const mobileBlockSize = 15;
+    this.drawNextPieceOnCanvas(this.nextPieceCanvasMobile, this.nextPieceCtxMobile, nextPiece, mobileBlockSize);
+  }
+
+  drawNextPieceOnCanvas(canvas, ctx, nextPiece, blockSize) {
+    if (!canvas || !ctx) return;
 
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -56,15 +89,15 @@ export class UIManager {
     if (nextPiece) {
       const { shape, color } = nextPiece;
 
-      const offsetX = (canvas.width - shape[0].length * BLOCK_SIZE) / 2;
-      const offsetY = (canvas.height - shape.length * BLOCK_SIZE) / 2;
+      const offsetX = (canvas.width - shape[0].length * blockSize) / 2;
+      const offsetY = (canvas.height - shape.length * blockSize) / 2;
 
       ctx.fillStyle = color;
 
       shape.forEach((row, y) => {
         row.forEach((v, x) => {
           if (v) {
-            ctx.fillRect(offsetX + x * BLOCK_SIZE, offsetY + y * BLOCK_SIZE, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+            ctx.fillRect(offsetX + x * blockSize, offsetY + y * blockSize, blockSize - 2, blockSize - 2);
           }
         });
       });

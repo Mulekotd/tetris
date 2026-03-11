@@ -4,10 +4,151 @@ export class InputHandler {
   constructor(game, gameManager) {
     this.game = game;
     this.gameManager = gameManager;
+
+    // Touch state
+    this.touchStartX = 0;
+    this.touchStartY = 0;
+    this.touchStartTime = 0;
+    this.lastTapTime = 0;
+    this.isTouchHolding = false;
+    this.touchHoldTimer = null;
+    this.softDropInterval = null;
+    this.hasMoved = false;
+
+    // Touch thresholds
+    this.swipeThreshold = 30;
+    this.holdThreshold = 150;
+    this.doubleTapThreshold = 300;
   }
 
   listen() {
     window.addEventListener('keydown', e => this.handleKeyDown(e));
+
+    // Touch events
+    const gameCanvas = document.getElementById('game-layer');
+    if (gameCanvas) {
+      gameCanvas.addEventListener('touchstart', e => this.handleTouchStart(e), { passive: false });
+      gameCanvas.addEventListener('touchmove', e => this.handleTouchMove(e), { passive: false });
+      gameCanvas.addEventListener('touchend', e => this.handleTouchEnd(e), { passive: false });
+      gameCanvas.addEventListener('touchcancel', e => this.handleTouchCancel(e), { passive: false });
+    }
+  }
+
+  handleTouchStart(e) {
+    if (!this.gameManager.isStarted || this.game.isGameOver || this.game.isPaused) return;
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    this.touchStartX = touch.clientX;
+    this.touchStartY = touch.clientY;
+    this.touchStartTime = Date.now();
+    this.hasMoved = false;
+
+    // Start hold timer for soft drop
+    this.touchHoldTimer = setTimeout(() => {
+      if (!this.hasMoved) {
+        this.isTouchHolding = true;
+        this.startSoftDropRepeat();
+      }
+    }, this.holdThreshold);
+  }
+
+  handleTouchMove(e) {
+    if (!this.gameManager.isStarted || this.game.isGameOver || this.game.isPaused) return;
+    e.preventDefault();
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - this.touchStartX;
+    const deltaY = touch.clientY - this.touchStartY;
+
+    // Horizontal swipe detection
+    if (Math.abs(deltaX) > this.swipeThreshold && Math.abs(deltaX) > Math.abs(deltaY)) {
+      this.hasMoved = true;
+      this.clearHoldTimer();
+
+      if (deltaX > 0) {
+        this.move(1);
+      } else {
+        this.move(-1);
+      }
+
+      // Reset start position for continuous movement
+      this.touchStartX = touch.clientX;
+      this.touchStartY = touch.clientY;
+    }
+  }
+
+  handleTouchEnd(e) {
+    if (!this.gameManager.isStarted || this.game.isGameOver || this.game.isPaused) return;
+    e.preventDefault();
+
+    this.clearHoldTimer();
+    this.stopSoftDropRepeat();
+
+    const touchDuration = Date.now() - this.touchStartTime;
+    const currentTime = Date.now();
+
+    // If it was a hold (soft drop), don't process as tap
+    if (this.isTouchHolding) {
+      this.isTouchHolding = false;
+      return;
+    }
+
+    // If piece was moved, don't process as tap
+    if (this.hasMoved) {
+      return;
+    }
+
+    // Quick tap (not a hold)
+    if (touchDuration < this.holdThreshold) {
+      // Check for double tap (hard drop)
+      if (currentTime - this.lastTapTime < this.doubleTapThreshold) {
+        this.hardDrop();
+        this.lastTapTime = 0;
+      } else {
+        // Single tap - rotate
+        this.lastTapTime = currentTime;
+        // Delay rotation to check for double tap
+        setTimeout(() => {
+          if (this.lastTapTime === currentTime) {
+            this.rotate();
+          }
+        }, this.doubleTapThreshold);
+      }
+    }
+  }
+
+  handleTouchCancel(e) {
+    this.clearHoldTimer();
+    this.stopSoftDropRepeat();
+    this.isTouchHolding = false;
+    this.hasMoved = false;
+  }
+
+  clearHoldTimer() {
+    if (this.touchHoldTimer) {
+      clearTimeout(this.touchHoldTimer);
+      this.touchHoldTimer = null;
+    }
+  }
+
+  startSoftDropRepeat() {
+    // Initial soft drop
+    this.softDrop();
+
+    // Continue soft drop while holding
+    this.softDropInterval = setInterval(() => {
+      if (this.isTouchHolding) {
+        this.softDrop();
+      }
+    }, 50);
+  }
+
+  stopSoftDropRepeat() {
+    if (this.softDropInterval) {
+      clearInterval(this.softDropInterval);
+      this.softDropInterval = null;
+    }
   }
 
   handleKeyDown(e) {

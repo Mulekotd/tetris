@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <title>Tetris</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="stylesheet" href="styles.css" />
@@ -16,6 +18,22 @@
 
     <!-- Game Container -->
     <div id="game-container" class="game-container hidden">
+      <!-- Mobile Top Panel (Next Piece + Score side by side) -->
+      <div class="mobile-top-panel">
+        <div class="panel-box panel-box-compact">
+          <h2>Next</h2>
+          <canvas id="next-piece-canvas-mobile" width="80" height="60"></canvas>
+        </div>
+        <div class="panel-box panel-box-compact">
+          <h2>Score</h2>
+          <div class="score-value" id="score-display-mobile">0</div>
+          <div class="mobile-stats">
+            <span>L: <span id="lines-display-mobile">0</span></span>
+            <span>Lv: <span id="level-display-mobile">1</span></span>
+          </div>
+        </div>
+      </div>
+
       <div class="canvas-wrapper">
         <canvas id="game-layer"></canvas>
         <div id="game-overlay" class="overlay">
@@ -25,6 +43,14 @@
             <button id="start-button" class="button">START GAME</button>
           </div>
         </div>
+      </div>
+
+      <!-- Mobile Controls Info -->
+      <div class="mobile-controls-info">
+        <span>Tap: Rotate</span>
+        <span>Hold: Drop</span>
+        <span>2x Tap: Hard Drop</span>
+        <span>Swipe: Move</span>
       </div>
 
       <div class="side-panel">
